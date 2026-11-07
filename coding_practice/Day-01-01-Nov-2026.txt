@@ -1,0 +1,24 @@
+
+## Ansible playbook to install Nginx on pathnex server
+
+---
+- name: Install nginx on pathnex Ec2 instance
+  hosts: all
+  become: yes
+
+  tasks: 
+    - name: Install nginx
+      yum:
+        name: nginx
+        state: present
+
+## Docker installation & first container
+
+docker --version
+docker run ubuntu echo "Hello DevOps practioner"
+
+
+### Docker file
+From ubuntu:22.04
+CMD ["echo", "Hello Pathnex"]
+
