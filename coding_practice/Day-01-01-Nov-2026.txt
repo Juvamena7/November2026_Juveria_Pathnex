@@ -1,4 +1,4 @@
-Changes to this file--
+ file--
 ## Ansible playbook to install Nginx on pathnex server
 
 ---
