@@ -1,0 +1,5 @@
+timings:
+1 hour: Kubernetes
+2 hour: Git code
+1 hour: Terraform
+
