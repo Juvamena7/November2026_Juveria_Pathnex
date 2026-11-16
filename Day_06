@@ -1,0 +1,78 @@
+# Day 06 - Introduction to CloudFormation and Kubernetes Advanced Concepts
+
+## Ansible - Install Docker
+```yaml 
+- name: Install Docker
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Install Docker
+      yum:
+        name: docker
+        state: present
+    - name: Service started
+      service:
+        name: docker
+        stat: started
+        enabled: yes
+
+# Terraform - Provisioning EC2 with VPC
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16
+}
+
+resource "aws_instance" "Infosys-EC2" {
+  ami             = "ami-23GDH766FFF"
+  instance_type   = "c5.xlarge"
+  subnet_id       = aws_vpc.main.id
+  tags = {
+    Name  = "InfosysEC2"
+  }
+}
+
+# Kubernetes- Pod with Volume Mount
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tcs-pod
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: nginx-volume
+  volumes:
+    - name: nginx-volume
+      hostPath: 
+        path: /data
+        type: Directory
+
+
+# Shell Script - Check for running services
+#!/bin/bash
+service=("nginx" "docker" "httpd")
+for service in "${service[@]}"
+do 
+  if systemctl is-active --quiet $service; then
+    echo "$service is running"
+  else 
+    echo "$service is not running"
+  fi 
+done
+  
+
+# Docker
+# Node.js Application(javaScript)
+console.log("Hello PathneX");
+
+# Docker File
+FROM node:18
+WORKDIR /opt/tcs/node-app
+COPY app.js /opt/tcs/node-app
+CMD ["node", "/opt/tcs/node-app/node.js"]
+
+# Real path
+/opt/tcs/node-app/

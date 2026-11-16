@@ -1,0 +1,199 @@
+# Day 14 -mini project
+# Terraform EC2 creation with VPC, subnets, route table, IGW.
+# creating EC2 instance with ami, subnet,instance type and security group
+
+resource "aws_instance" "Pathnex-EC2" {
+  ami           = "ami-5GHD28484DD"
+  instance_types = "t3.micro"
+  subnet_id = aws_subnet.pathnex_pub.id
+  vpc_security_group_id = aws_security_group.pathnex_sg.id
+  associate_public_ip_address = true
+
+  tags = {
+    Name = "Pathnex-instance"
+  }
+}
+# resource block for VPC
+
+resource "aws_vpc" "main" {
+  cidr_block  = 10.0.0.0/16
+
+  tags = {
+    Name = "pathnex-vpc"
+  }
+}
+# resource block for Internet gateway
+
+resource "aws_internet_gateway" "pathnex_igw" {
+  vpc_id  = aws_vpc.main.id
+  tags = {
+    Name = "Pathnex-IGW"
+  }
+}
+# resource block for subnet 
+
+resource "aws_subnet" "pathnex_pub" {
+  vpc_id = aws_vpc.main.id
+  cidr_block = 10.0.1.0/24
+  map_public_ip_on_launch = true
+  tags = {
+    Name = "Public-subnet"
+  }
+}
+# resource block for Route table
+
+resource "aws_route_table" "pathnex_rt" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.pathnex_igw.id
+  }
+  tags = {
+    Name = "Pathnex-public-rt"
+  }
+}
+
+# resource block for route table association
+
+resource "aws_route_table_association" "pathnex_rta" {
+  subnet_id = aws_subnet.pathnex_pub.id
+  route_table_id = aws_route_table.pathnex_rt.id
+}
+
+# resource block for security group
+resource "aws_security_group" "pathnex-sg" {
+  name   = "pathnex-ec2-sg"
+  description = "Security group for SSH connection"
+  vpc_id = aws_vpc.main.id
+
+  ingress {
+    description = "SSH access"
+    from_port = 22
+    to_port  = 22
+    protocol = "tcp"
+    cidr_block = "My_ip"
+  }
+  egress {
+    from_port = 0 
+    to_port = 0
+    protocol = "-1"
+    cidr_block = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name = "Pathnex-ec2-sg"
+  }
+}
+
+## 2️⃣ Ansible — Install Nginx & Deploy HTML File
+- name: Install Nginx and Deploy HTML file
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Install Nginx
+      yum:
+        name: nginx
+        state: present
+    - name: start and enable nginx
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: yes
+    - name: Deploy custom HTML file
+      ansible.builtin.copy:
+        src: index.html
+        dest: /usr/share/nginx/html/index.html
+        owner: root
+        group: root
+        mode: '0644'
+
+
+## 3️⃣ Kubernetes — Create Deployment + Service
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: pathnex-Deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: pathnex-app
+  template:
+    metadata:
+      labels:
+        app: pathnex-app
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pathnex-service
+spec:
+  type: NodePort
+  selector:
+    app: pathnex-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 30007
+
+
+## 4️⃣ Shell — Print CPU, Memory, Disk
+
+#!/bin/bash
+echo " CPU utilisation of the system is: "
+top
+echo "Load average/current system time/how long server was been running/no of logged in users"
+uptime
+echo "Memory usgae is: "
+free -h 
+echo "Disk usage is: "
+df -h
+
+
+# Scheduled Pipelines
+
+## 🔹 Jenkins Pipeline — Scheduled Build
+You will learn how to **schedule a Jenkins pipeline using cron**.
+pipeline {
+    agent any
+    environment {
+        INSTITUTE_NAME = "pathnex"
+    }
+    triggers {
+        cron('H 2 * * *') // every day at 2 AM
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/Pathnex/sample-java-app.git'
+            }
+        }
+        stage('Build') {
+            sh 'mvn clean package'
+        }
+    }
+}
+
+# GitLab CI - Scheduled Pipeline
+You will learn how to **schedule GitLab CI pipeline via cron**.
+
+stages:
+  - build
+build:
+  stage: build
+  image: mvn:3.8.1-jdk-17
+  script:
+    - git clone https://github.com/Pathnex/sample-java-app.git
+    - cd sample-java-app
+    - mvn clean package
+
+
