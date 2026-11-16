@@ -1,0 +1,101 @@
+Day 09 - Docker Integration with Jenkins & GitLab
+
+Ansible - Setup Docker container for Nginx
+
+- name: Install docker container for nginx
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Pull Nginx image
+      docker_image:
+        name: ngix
+        source: pull
+    - name: Run nginx container
+      docker_container:
+        name: nginx-container
+        image: nginx
+        state: present
+        published_ports:
+          - "8080:80"
+
+# Terraform - EC2 with Auto Scaling Group
+
+resource "aws_launch_template" "TCS" {
+  name   = "tcs-template"
+  image_id = "ami-29DHFHF3639"
+  instance_type = "c5.xlarge"
+}
+
+resource "aws_autoscaling_group" "TCS-AS" {
+  desired_capacity   = 2
+  max_size           = 3
+  min_size           = 1
+  vpc_zone_identifier = ["subnet-123823682"]
+  launch_template     = aws_launch_template.TCS.id
+}
+
+# Kubernetes - Horizontal Pod Autoscaler(HPA)
+apiVersion: apps/v1
+kind: Deployment
+metadata: TCS-Deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tcs-app
+  template:
+    metadata
+      labels:
+        app: tcs-app
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: 
+  name: tcs-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: TCS-deployment
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 50  
+
+# Jenkinsfile - Deploy to Kubernetes
+
+pipeline {
+    agent any 
+    stages {
+      stage {
+        steps {
+          sh "kubectl apply -f deployment.yaml"
+        }
+      }
+    }
+}
+
+# GitLab CI/CD- Deploy to Kubernetes
+
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  script:
+    - kubectl apply -f deployment.yaml
+
+# Docker
+# Environment Variables
+FROM ubuntu:22.04
+ENV INSTITUTE=tcs
+ENV COURSE=DevOps
+CMD echo "$INSTITUTE- $COURSE"
+
