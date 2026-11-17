@@ -1,0 +1,4 @@
+1 hour - Git code
+3 hrs- Kubernetes and ArgoCD
+2 hrs- audio preparation
+
