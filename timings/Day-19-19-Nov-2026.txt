@@ -1,2 +1,4 @@
+daily practice
+
 1 hr: Git GitCode
 3 hrs: Azure
