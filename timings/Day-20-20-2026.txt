@@ -1,0 +1,2 @@
+An hour: Git Code/ programming
+3 hours: Kubernetes/RBAC/IRSA/STS/OIDC
